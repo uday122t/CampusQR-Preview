@@ -103,12 +103,29 @@ function showTab(tab){
 }
 $("tabLogin").onclick=()=>showTab("login");$("tabRegister").onclick=()=>showTab("register");$("tabSetup").onclick=async()=>{showTab("setup");await checkBootstrap();};
 async function invoke(action,body={}){const {data,error}=await sb.functions.invoke("registration-admin",{body:{action,...body}});if(error)throw new Error(error.message||"تعذر الاتصال بالخادم");if(data?.error)throw new Error(data.error);return data;}
-async function checkBootstrap(){message($("authMsg"),"هذه الخطوة لمرة واحدة. إذا كان المدير الأساسي موجوداً سيرفض الخادم أي محاولة إنشاء إضافية.","ok");}
+async async function checkBootstrap(){
+ try{
+  const state=await invoke("bootstrap_status");
+  const available=state.setup_available===true;
+  $("tabSetup").classList.toggle("hidden",!available);
+  if(!available && $("setupForm").classList.contains("active")) showTab("login");
+  if(!available) $("tabSetup").setAttribute("aria-hidden","true");
+  else $("tabSetup").removeAttribute("aria-hidden");
+  return available;
+ }catch(err){
+  $("tabSetup").classList.add("hidden");
+  if(!$("authMsg").textContent) message($("authMsg"),"تعذر التحقق من حالة تهيئة المدير. أعد تحميل الصفحة.","error");
+  return false;
+ }
+}
 $("loginForm").onsubmit=async e=>{e.preventDefault();const id=$("loginId").value.trim(),password=$("loginPass").value;const btn=$("loginBtn");busy(btn,true);message($("authMsg"),"");
 try{if(id.includes("@")){const {data,error}=await sb.auth.signInWithPassword({email:id,password});if(error)throw error;await enterApp(data.user);}else{const data=await invoke("admin_login",{student_number:id,password});const {data:sessionData,error}=await sb.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});if(error)throw error;await enterApp(sessionData.user||data.user);}}
 catch(err){message($("authMsg"),err.message||"تعذر تسجيل الدخول","error");}finally{busy(btn,false,"تسجيل الدخول");}};
 $("registerForm").onsubmit=async e=>{e.preventDefault();const btn=$("registerBtn");busy(btn,true);message($("authMsg"),"");try{const r=await invoke("submit_request",{full_name:$("regName").value.trim(),student_number:$("regNumber").value.trim(),email:$("regEmail").value.trim()});message($("authMsg"),r.message||"تم إرسال الطلب بنجاح.","ok");$("registerForm").reset();}catch(err){message($("authMsg"),err.message,"error");}finally{busy(btn,false,"إرسال طلب التسجيل");}};
-$("setupForm").onsubmit=async e=>{e.preventDefault();const btn=$("setupBtn");busy(btn,true);message($("authMsg"),"");try{const r=await invoke("bootstrap_super_admin",{full_name:$("setupName").value.trim(),email:$("setupEmail").value.trim(),password:$("setupPass").value,bootstrap_code:$("setupCode").value});message($("authMsg"),r.message+" سجّل الدخول الآن بالبريد وكلمة المرور اللذين أدخلتهما.","ok");showTab("login");$("loginId").value=$("setupEmail").value;$("loginPass").value=$("setupPass").value;}catch(err){message($("authMsg"),err.message,"error");}finally{busy(btn,false,"إنشاء حساب المدير الأساسي");}};
+$("setupForm").onsubmit=async e=>{e.preventDefault();const btn=$("setupBtn");busy(btn,true);message($("authMsg"),"");try{const r=await invoke("bootstrap_super_admin",{full_name:$("setupName").value.trim(),email:$("setupEmail").value.trim(),password:$("setupPass").value,bootstrap_code:$("setupCode").value});message($("authMsg"),r.message+" سجّل الدخول الآن بالبريد وكلمة المرور اللذين أدخلتهما.","ok");await checkBootstrap();showTab("login");$("loginId").value=$("setupEmail").value;$("loginPass").value=$("setupPass").value;}catch(err){message($("authMsg"),err.message,"error");}finally{busy(btn,false,"إنشاء حساب المدير الأساسي");}};
+checkBootstrap();
+setInterval(checkBootstrap,5000);
+
 async function enterApp(user){currentUser=user;$("authView").classList.add("hidden");$("dashboard").classList.remove("hidden");$("welcome").textContent="أهلاً "+(user.user_metadata?.full_name||"بك");$("userEmail").textContent=user.email||"";$("currentEmail").value=user.email||"";
 let isAdmin=false;try{await invoke("list_sessions");isAdmin=true;}catch(_e){isAdmin=false;}
 $("roleLabel").textContent=isAdmin?"إدارة / مدير":"طالب / حساب مسجل";
