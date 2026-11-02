@@ -1,0 +1,13 @@
+{
+  "name": "CampusQR - نظام الحضور الجامعي",
+  "short_name": "CampusQR",
+  "description": "نظام الحضور الجامعي الذكي",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#081222",
+  "theme_color": "#091426",
+  "icons": [{"src":"./campusqr-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
