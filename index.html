@@ -99,16 +99,17 @@
   <div class="panel"><div class="panel-head"><h3>الطلبات المعلقة</h3><span id="requestCount">0 طلب</span></div><div class="table-wrap"><table><thead><tr><th>اسم الطالب</th><th>الرقم الجامعي</th><th>Gmail</th><th>تاريخ الطلب</th><th>الإجراء</th></tr></thead><tbody id="requestRows"><tr><td colspan="5" class="empty-note">جارٍ تحميل الطلبات...</td></tr></tbody></table></div></div>
  </section>
  <section class="view" id="sessions">
-  <div class="page-head"><div><div class="eyebrow">الجداول الدراسية</div><h1>المحاضرات</h1><p>إنشاء جلسات الحضور ومتابعة الرموز النشطة.</p></div><button class="btn" id="newSession2">＋ إنشاء محاضرة</button></div>
-  <div class="panel"><div class="toolbar"><input class="search" placeholder="ابحث عن مساق أو مدرس..."><select class="select"><option>كل الحالات</option><option>جارية</option><option>منتهية</option></select></div><div id="allSessions">
-   <div class="session"><div class="course-icon">💻</div><div class="session-info"><b>هندسة البرمجيات</b><p>د. أحمد خالد · قاعة 204 · 10:00 - 11:30</p></div><span class="status">جارية الآن</span></div>
-   <div class="session"><div class="course-icon">🔐</div><div class="session-info"><b>أمن المعلومات</b><p>م. سامر يوسف · مختبر 3 · 10:30 - 12:00</p></div><span class="status">جارية الآن</span></div>
-   <div class="session"><div class="course-icon">📐</div><div class="session-info"><b>رياضيات متقطعة</b><p>د. ليلى محمود · قاعة 112 · 11:00 - 12:30</p></div><span class="status pending">مجدولة</span></div>
-  </div></div>
+  <div class="page-head"><div><div class="eyebrow">الجداول الدراسية</div><h1>محاضراتي</h1><p>كل دكتور يشاهد محاضراته فقط، ويمكنه فتح سجل الحضور لكل محاضرة.</p></div><button class="btn" id="newSession2">＋ إنشاء محاضرة</button></div>
+  <div class="panel"><div class="panel-head"><h3>المحاضرات المسجلة</h3><button class="btn ghost" id="refreshSessions">↻ تحديث</button></div><div id="sessionCards"><div class="empty-note">جارٍ تحميل المحاضرات...</div></div></div>
  </section>
  <section class="view" id="attendance">
-  <div class="page-head"><div><div class="eyebrow">المتابعة اليومية</div><h1>سجل الحضور</h1><p>مراجعة عمليات الحضور والغياب حسب المساق.</p></div><button class="btn secondary" id="exportCsv">↓ تصدير CSV</button></div>
-  <div class="panel"><div class="toolbar"><input class="search" id="attendanceSearch" placeholder="ابحث عن طالب..."><select class="select" id="attendanceFilter"><option value="">كل الحالات</option><option value="حاضر">حاضر</option><option value="غائب">غائب</option></select></div><div class="table-wrap"><table><thead><tr><th>الطالب</th><th>الرقم الجامعي</th><th>المساق</th><th>التاريخ</th><th>الوقت</th><th>الحالة</th></tr></thead><tbody id="attendanceRows"></tbody></table></div></div>
+  <div class="page-head"><div><div class="eyebrow">تسجيل ومتابعة الحضور</div><h1>الحضور والغياب</h1><p>حدد حالة كل طالب واحفظ السجل، ثم صدّره إلى Excel أو شاركه مباشرة.</p></div></div>
+  <div class="panel">
+   <div class="toolbar"><select class="select" id="attendanceSessionSelect"><option value="">اختر المحاضرة</option></select><button class="btn secondary" id="refreshAttendance">تحديث السجل</button></div>
+   <div class="toolbar" style="justify-content:flex-end"><button class="btn" id="saveAttendance">حفظ الحضور والغياب</button><button class="btn secondary" id="exportExcel">↓ تنزيل Excel</button><button class="btn ghost" id="shareExcel">مشاركة ملف Excel</button></div>
+   <div id="attendanceMeta" class="notice">اختر محاضرة لعرض الطلاب وتسجيل حالتهم.</div>
+   <div class="table-wrap"><table><thead><tr><th>الطالب</th><th>الرقم الجامعي</th><th>القسم</th><th>الحالة</th><th>ملاحظات</th></tr></thead><tbody id="attendanceRows"><tr><td colspan="5" class="empty-note">لم يتم اختيار محاضرة</td></tr></tbody></table></div>
+  </div>
  </section>
  <section class="view" id="reports">
   <div class="page-head"><div><div class="eyebrow">مؤشرات الأداء</div><h1>التقارير والإحصائيات</h1><p>نظرة عامة على التزام الطلاب بالحضور.</p></div><button class="btn secondary" id="reportExport">↓ تنزيل التقرير</button></div>
@@ -121,7 +122,8 @@
  </section>
 </main>
 </div>
-<div class="modal-back" id="modal"><div class="modal"><h3 id="modalTitle">إنشاء محاضرة</h3><p>أدخل بيانات تجريبية لإضافتها إلى لوحة المعاينة.</p><div id="modalFields"></div><div class="modal-actions"><button class="btn" id="saveModal">حفظ</button><button class="btn ghost" id="closeModal">إلغاء</button></div></div></div>
+<div class="modal-back" id="modal"><div class="modal"><h3 id="modalTitle">إنشاء محاضرة</h3><p>ستُحفظ المحاضرة باسم حساب الدكتور الحالي.</p><div id="modalFields"></div><div class="modal-actions"><button class="btn" id="saveModal">حفظ</button><button class="btn ghost" id="closeModal">إلغاء</button></div></div></div>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script>
 const students=[
 {name:'محمد أحمد',id:'20231045',college:'تكنولوجيا المعلومات',major:'هندسة البرمجيات',device:'مرتبط',state:'نشط'},
@@ -131,32 +133,25 @@ const students=[
 {name:'يوسف خالد',id:'20220987',college:'الهندسة',major:'هندسة الاتصالات',device:'غير مرتبط',state:'مراجعة'},
 {name:'نور سمير',id:'20231202',college:'تكنولوجيا المعلومات',major:'علوم الحاسوب',device:'مرتبط',state:'نشط'}
 ];
-const attendance=[
-['محمد أحمد','20231045','هندسة البرمجيات','2026/11/02','10:42:18','حاضر'],
-['سارة علي','20231052','أمن المعلومات','2026/11/02','10:41:52','حاضر'],
-['عمر حسن','20221108','هندسة البرمجيات','2026/11/02','—','غائب'],
-['ليان محمود','20231121','رياضيات متقطعة','2026/11/02','10:15:04','حاضر'],
-['يوسف خالد','20220987','أمن المعلومات','2026/11/02','—','غائب'],
-['نور سمير','20231202','هندسة البرمجيات','2026/11/02','10:39:07','حاضر']
-];
+const attendance=[];
 const $=s=>document.querySelector(s);
 function renderStudents(){const q=$('#studentSearch').value.toLowerCase(),c=$('#collegeFilter').value;$('#studentRows').innerHTML=students.filter(s=>(s.name+s.id).toLowerCase().includes(q)&&(!c||s.college===c)).map(s=>'<tr><td><div class="student"><span class="avatar">'+s.name[0]+'</span>'+s.name+'</div></td><td>'+s.id+'</td><td>'+s.college+'</td><td>'+s.major+'</td><td>'+s.device+'</td><td><span class="pill '+(s.state==='نشط'?'':'absent')+'">'+s.state+'</span></td></tr>').join('')||'<tr><td colspan="6" class="empty-note">لا توجد نتائج مطابقة</td></tr>'}
 function renderAttendance(){const q=$('#attendanceSearch').value.toLowerCase(),f=$('#attendanceFilter').value;$('#attendanceRows').innerHTML=attendance.filter(a=>(a[0]+a[1]).toLowerCase().includes(q)&&(!f||a[5]===f)).map(a=>'<tr><td>'+a[0]+'</td><td>'+a[1]+'</td><td>'+a[2]+'</td><td>'+a[3]+'</td><td>'+a[4]+'</td><td><span class="pill '+(a[5]==='غائب'?'absent':'')+'">'+a[5]+'</span></td></tr>').join('')}
 function go(view){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===view));document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));const active=document.querySelector('[data-view="'+view+'"]');$('#crumb').textContent=active?active.textContent.trim():'الرئيسية';$('#sidebar').classList.remove('open');window.scrollTo({top:0,behavior:'smooth'})}
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>go(b.dataset.view));document.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>go(b.dataset.goto));
 $('#menuBtn').onclick=()=>$('#sidebar').classList.toggle('open');
-$('#studentSearch').oninput=renderStudents;$('#collegeFilter').onchange=renderStudents;$('#attendanceSearch').oninput=renderAttendance;$('#attendanceFilter').onchange=renderAttendance;
+$('#studentSearch').oninput=renderStudents;$('#collegeFilter').onchange=renderStudents;
 function qr(){const el=$('#qrArt');el.innerHTML='';for(let i=0;i<169;i++){const cell=document.createElement('i');el.appendChild(cell)}$('#qrCode').textContent='CQ-'+Math.random().toString(36).slice(2,6).toUpperCase()+'-'+Math.random().toString(36).slice(2,4).toUpperCase()}
 qr();let sec=30;setInterval(()=>{sec--;if(sec<=0){sec=30;qr()}$('#countdown').textContent='00:'+String(sec).padStart(2,'0')},1000);
 $('#refreshQr').onclick=()=>{sec=30;qr();$('#countdown').textContent='00:30'};
 let mode='session';
-function openModal(type){mode=type;$('#modalTitle').textContent=type==='session'?'إنشاء محاضرة':'إضافة طالب جديد';$('#modalFields').innerHTML=type==='session'?'<div class="field"><label>اسم المساق</label><input id="f1" placeholder="مثال: قواعد البيانات"></div><div class="field"><label>اسم المدرس</label><input id="f2" placeholder="اسم المدرس"></div><div class="field"><label>القاعة والوقت</label><input id="f3" placeholder="قاعة 205 · 12:00"></div>':'<div class="field"><label>اسم الطالب</label><input id="f1" placeholder="الاسم الكامل"></div><div class="field"><label>الرقم الجامعي</label><input id="f2" placeholder="2023xxxx"></div><div class="field"><label>Gmail الطالب</label><input id="f3" type="email" placeholder="student@gmail.com"></div><div class="field"><label>القسم / التخصص</label><input id="f4" placeholder="هندسة الحاسوب"></div><div class="field"><label>السنة الدراسية</label><input id="f5" placeholder="السنة الأولى"></div>';$('#modal').classList.add('show')}
+function openModal(type){mode=type;$('#modalTitle').textContent=type==='session'?'إنشاء محاضرة':'إضافة طالب جديد';$('#modalFields').innerHTML=type==='session'?'<div class="field"><label>اسم المساق</label><input id="f1" placeholder="مثال: قواعد البيانات" required></div><div class="field"><label>القاعة</label><input id="f2" placeholder="قاعة 205 أو مختبر 3"></div><div class="field"><label>موعد المحاضرة</label><input id="f3" type="datetime-local" required></div>':'<div class="field"><label>اسم الطالب</label><input id="f1" placeholder="الاسم الكامل"></div><div class="field"><label>الرقم الجامعي</label><input id="f2" placeholder="2023xxxx"></div><div class="field"><label>Gmail الطالب</label><input id="f3" type="email" placeholder="student@gmail.com"></div><div class="field"><label>القسم / التخصص</label><input id="f4" placeholder="هندسة الحاسوب"></div><div class="field"><label>السنة الدراسية</label><input id="f5" placeholder="السنة الأولى"></div>';if(type==='session')$('#f3').value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);$('#modal').classList.add('show')}
 $('#newSession').onclick=$('#newSession2').onclick=()=>openModal('session');$('#addStudent').onclick=()=>openModal('student');$('#closeModal').onclick=()=>$('#modal').classList.remove('show');
-$('#saveModal').onclick=async()=>{const a=$('#f1').value.trim(),b=$('#f2').value.trim(),c=$('#f3').value.trim();if(!a||!b||!c){alert('يرجى تعبئة جميع الحقول');return}const save=$('#saveModal');save.disabled=true;try{if(mode==='student'){if(!window.CampusQRAdminAction)throw new Error('خدمة الإدارة غير متاحة');await window.CampusQRAdminAction({action:'add_student',full_name:a,student_number:b,email:c,department:$('#f4').value.trim(),academic_year:$('#f5').value.trim()});alert('تم إنشاء حساب الطالب وإرسال رابط التفعيل إلى Gmail.');if(window.CampusQRRefreshStudents)window.CampusQRRefreshStudents();}else{const item=document.createElement('div');item.className='session';item.innerHTML='<div class="course-icon">📘</div><div class="session-info"><b></b><p></p></div><span class="status pending">مجدولة</span>';item.querySelector('b').textContent=a;item.querySelector('p').textContent=b+' · '+c;$('#allSessions').prepend(item);$('#sessionList').prepend(item.cloneNode(true))}$('#modal').classList.remove('show')}catch(err){alert(err.message||'تعذر حفظ البيانات')}finally{save.disabled=false}};
+$('#saveModal').onclick=async()=>{const a=$('#f1').value.trim(),b=$('#f2').value.trim(),c=$('#f3').value.trim();if(!a||!c||(mode==='student'&&!b)){alert('يرجى تعبئة الحقول المطلوبة');return}const save=$('#saveModal');save.disabled=true;try{if(mode==='student'){if(!window.CampusQRAdminAction)throw new Error('خدمة الإدارة غير متاحة');await window.CampusQRAdminAction({action:'add_student',full_name:a,student_number:b,email:c,department:$('#f4').value.trim(),academic_year:$('#f5').value.trim()});alert('تم إنشاء حساب الطالب وإرسال رابط التفعيل إلى Gmail.');if(window.CampusQRRefreshStudents)window.CampusQRRefreshStudents();}else{if(!window.CampusQRAdminAction)throw new Error('خدمة الإدارة غير متاحة');await window.CampusQRAdminAction({action:'create_session',course_name:a,room:b,starts_at:new Date(c).toISOString()});alert('تم إنشاء المحاضرة وحفظها في قاعدة البيانات.');if(window.CampusQRRefreshSessions)await window.CampusQRRefreshSessions()}$('#modal').classList.remove('show')}catch(err){alert(err.message||'تعذر حفظ البيانات')}finally{save.disabled=false}};
 function exportData(){const rows=[['الطالب','الرقم الجامعي','المساق','التاريخ','الوقت','الحالة'],...attendance];const csv='\ufeff'+rows.map(r=>r.map(x=>'"'+String(x).replaceAll('"','""')+'"').join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='CampusQR-attendance.csv';a.click();URL.revokeObjectURL(url)}
-$('#exportCsv').onclick=$('#reportExport').onclick=exportData;
+$('#exportCsv')?.addEventListener('click',exportData);$('#reportExport')?.addEventListener('click',exportData);
 $('#langBtn').onclick=()=>alert('سيتم تفعيل الواجهة الإنجليزية ضمن مرحلة تعدد اللغات. المعاينة الحالية باللغة العربية.');
-renderStudents();renderAttendance();
+renderStudents();
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
@@ -191,6 +186,57 @@ renderStudents();renderAttendance();
  window.CampusQRAdminAction=adminAction;
  async function loadStudents(){try{const data=await adminAction({action:'list_students'});const rows=data.students||[];$id('studentRows').innerHTML=rows.map(s=>'<tr><td><div class="student"><span class="avatar">'+escapeHtml((s.full_name||'ط').slice(0,1))+'</span>'+escapeHtml(s.full_name)+'</div></td><td>'+escapeHtml(s.student_number)+'</td><td>'+escapeHtml(s.department||'—')+'</td><td>'+escapeHtml(s.academic_year||'—')+'</td><td>غير مرتبط</td><td><span class="pill">معتمد</span></td></tr>').join('')||'<tr><td colspan="6" class="empty-note">لا يوجد طلاب معتمدون بعد</td></tr>';}catch(e){console.warn('student list',e);}}
  window.CampusQRRefreshStudents=loadStudents;
+
+ const attendanceLabels={unmarked:'لم يحدد',present:'حاضر',absent:'غائب',late:'متأخر',excused:'بعذر'};
+ let attendanceSession=null,attendanceData=[],currentSessions=[];
+ async function loadSessions(){
+  const host=$id('sessionCards');host.innerHTML='<div class="empty-note">جارٍ تحميل المحاضرات...</div>';
+  try{
+   const result=await adminAction({action:'list_sessions'});currentSessions=result.sessions||[];
+   const selector=$id('attendanceSessionSelect');selector.innerHTML='<option value="">اختر المحاضرة</option>'+currentSessions.map(s=>'<option value="'+s.id+'">'+escapeHtml(s.course_name)+' · '+new Date(s.starts_at).toLocaleString('ar')+'</option>').join('');
+   host.innerHTML=currentSessions.map(s=>'<div class="session"><div class="course-icon">📘</div><div class="session-info"><b>'+escapeHtml(s.course_name)+'</b><p>'+escapeHtml(s.room||'دون قاعة')+' · '+new Date(s.starts_at).toLocaleString('ar')+'</p></div><button class="btn" data-open-attendance="'+s.id+'">تسجيل الحضور</button></div>').join('')||'<div class="empty-note">لا توجد محاضرات بعد. أنشئ أول محاضرة من الزر بالأعلى.</div>';
+  }catch(e){host.innerHTML='<div class="empty-note">تعذر تحميل المحاضرات: '+escapeHtml(e.message)+'</div>';}
+ }
+ window.CampusQRRefreshSessions=loadSessions;
+ async function loadAttendance(sessionId){
+  if(!sessionId){attendanceSession=null;attendanceData=[];$id('attendanceRows').innerHTML='<tr><td colspan="5" class="empty-note">اختر محاضرة لعرض الطلاب.</td></tr>';$id('attendanceMeta').textContent='اختر محاضرة لعرض الطلاب وتسجيل حالتهم.';return;}
+  $id('attendanceRows').innerHTML='<tr><td colspan="5" class="empty-note">جارٍ تحميل قائمة الطلاب...</td></tr>';
+  try{
+   const result=await adminAction({action:'list_attendance',session_id:sessionId});attendanceSession=result.session;attendanceData=result.attendance||[];
+   $id('attendanceMeta').textContent=attendanceSession.course_name+' · '+(attendanceSession.room||'دون قاعة')+' · '+new Date(attendanceSession.starts_at).toLocaleString('ar')+' · '+attendanceData.length+' طالب';
+   $id('attendanceRows').innerHTML=attendanceData.map(s=>'<tr><td>'+escapeHtml(s.full_name)+'</td><td>'+escapeHtml(s.student_number)+'</td><td>'+escapeHtml(s.department||'—')+'</td><td><select class="select attendance-status" data-user="'+s.user_id+'">'+Object.entries(attendanceLabels).map(([v,l])=>'<option value="'+v+'" '+(s.status===v?'selected':'')+'>'+l+'</option>').join('')+'</select></td><td><input class="search attendance-notes" data-user="'+s.user_id+'" value="'+escapeHtml(s.notes||'')+'" placeholder="ملاحظة اختيارية"></td></tr>').join('')||'<tr><td colspan="5" class="empty-note">لا يوجد طلاب معتمدون في النظام.</td></tr>';
+  }catch(e){$id('attendanceRows').innerHTML='<tr><td colspan="5" class="empty-note">تعذر تحميل السجل: '+escapeHtml(e.message)+'</td></tr>';}
+ }
+ async function saveAttendance(){
+  if(!attendanceSession)throw new Error('اختر محاضرة أولاً.');
+  const records=attendanceData.map(s=>({student_user_id:s.user_id,status:$id('attendanceRows').querySelector('[data-user="'+s.user_id+'"].attendance-status')?.value||'unmarked',notes:$id('attendanceRows').querySelector('[data-user="'+s.user_id+'"].attendance-notes')?.value||''}));
+  const result=await adminAction({action:'save_attendance',session_id:attendanceSession.id,records});
+  alert('تم حفظ سجل '+result.saved+' طالب بنجاح.');
+  await loadAttendance(attendanceSession.id);
+ }
+ function attendanceSheet(){
+  if(!attendanceSession)throw new Error('اختر محاضرة أولاً.');
+  const rows=[['المساق',attendanceSession.course_name],['القاعة',attendanceSession.room||'—'],['موعد المحاضرة',new Date(attendanceSession.starts_at).toLocaleString('ar')],[],['اسم الطالب','الرقم الجامعي','القسم','الحالة','ملاحظات']];
+  attendanceData.forEach(s=>{const status=$id('attendanceRows').querySelector('[data-user="'+s.user_id+'"].attendance-status')?.value||s.status;const notes=$id('attendanceRows').querySelector('[data-user="'+s.user_id+'"].attendance-notes')?.value||'';rows.push([s.full_name,s.student_number,s.department||'',attendanceLabels[status]||status,notes]);});
+  const sheet=XLSX.utils.aoa_to_sheet(rows);sheet['!cols']=[{wch:28},{wch:18},{wch:24},{wch:18},{wch:36}];
+  const book=XLSX.utils.book_new();XLSX.utils.book_append_sheet(book,sheet,'الحضور والغياب');return book;
+ }
+ function attendanceFile(){
+  if(!window.XLSX)throw new Error('تعذر تحميل مكتبة Excel. تحقق من اتصال الإنترنت ثم أعد المحاولة.');
+  const safe=(attendanceSession.course_name||'attendance').replace(/[^\p{L}\p{N}-]+/gu,'-');
+  const data=XLSX.write(attendanceSheet(),{bookType:'xlsx',type:'array'});
+  return new File([data],'CampusQR-'+safe+'.xlsx',{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+ }
+ function downloadAttendance(){const file=attendanceFile(),url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);}
+ async function shareAttendance(){const file=attendanceFile();if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'سجل الحضور والغياب'});}else{downloadAttendance();alert('تم تنزيل ملف Excel. يمكنك إرفاقه ومشاركته من جهازك.');}}
+ $id('refreshSessions').onclick=loadSessions;
+ $id('sessionCards').addEventListener('click',async e=>{const b=e.target.closest('[data-open-attendance]');if(!b)return;const id=b.dataset.openAttendance;$id('attendanceSessionSelect').value=id;go('attendance');await loadAttendance(id);});
+ $id('attendanceSessionSelect').onchange=e=>loadAttendance(e.target.value);
+ $id('refreshAttendance').onclick=()=>loadAttendance($id('attendanceSessionSelect').value);
+ $id('saveAttendance').onclick=async()=>{const b=$id('saveAttendance');b.disabled=true;try{await saveAttendance();}catch(e){alert(e.message||'تعذر حفظ الحضور');}finally{b.disabled=false;}};
+ $id('exportExcel').onclick=()=>{try{downloadAttendance();}catch(e){alert(e.message);}};
+ $id('shareExcel').onclick=async()=>{try{await shareAttendance();}catch(e){if(e.name!=='AbortError')alert(e.message||'تعذرت مشاركة الملف');}};
+
  function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
  async function loadRequests(){const body=$id('requestRows');if(!body)return;body.innerHTML='<tr><td colspan="5" class="empty-note">جارٍ تحميل الطلبات...</td></tr>';try{const data=await adminAction({action:'list_requests'});const rows=data.requests||[];$id('requestCount').textContent=rows.length+' طلب';body.innerHTML=rows.map(r=>'<tr><td>'+escapeHtml(r.full_name)+'</td><td>'+escapeHtml(r.student_number)+'</td><td>'+escapeHtml(r.email)+'</td><td>'+new Date(r.created_at).toLocaleDateString('ar')+'</td><td><button class="btn" data-approve="'+r.request_id+'">موافقة</button> <button class="btn ghost" data-reject="'+r.request_id+'">رفض</button></td></tr>').join('')||'<tr><td colspan="5" class="empty-note">لا توجد طلبات معلقة</td></tr>';}catch(e){body.innerHTML='<tr><td colspan="5" class="empty-note">تعذر تحميل الطلبات: '+escapeHtml(e.message)+'</td></tr>';}}
  async function enterApp(session) {
@@ -218,6 +264,7 @@ renderStudents();renderAttendance();
    document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='overview'));
    loadRequests();
    loadStudents();
+   loadSessions();
   }
  }
  $id('authForm').addEventListener('submit',async e=>{
