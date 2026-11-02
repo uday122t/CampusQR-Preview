@@ -219,6 +219,13 @@ renderStudents();renderAttendance();
     if(error) throw error;
     if(!data.user) throw new Error('تعذر إنشاء الحساب.');
     if(!data.session){message('تم إنشاء الحساب. افحص بريدك لتأكيده، ثم سجّل الدخول لإرسال طلب اعتماد الرقم الجامعي.',false);setMode('login');return;}
+    const {data:signupRole,error:signupRoleError}=await client.rpc('get_my_app_role');
+    if(signupRoleError) throw signupRoleError;
+    if(signupRole==='admin'||signupRole==='super_admin'){
+     message('تم التحقق من الحساب الإداري. جارٍ فتح لوحة الإدارة.',false);
+     await enterApp(data.session);
+     return;
+    }
     const {error:requestError}=await client.from('student_registration_requests').insert({user_id:data.user.id,student_number,full_name});
     if(requestError) throw requestError;
     message('تم إنشاء الحساب وإرسال طلب اعتمادك للإدارة.',false);
