@@ -28,7 +28,7 @@
   <h1 id="authHeading">تسجيل الدخول</h1><p id="authDescription">سجّل الدخول بحسابك الجامعي للوصول إلى خدمات الحضور.</p>
   <div class="auth-tabs"><button class="active" id="loginTab" type="button">تسجيل الدخول</button><button id="signupTab" type="button">إنشاء حساب</button></div>
   <form id="authForm">
-   <div class="auth-field" id="nameField" hidden><label>الاسم الكامل</label><input id="fullName" autocomplete="name" placeholder="اسم الطالب كما في السجل الجامعي"></div>
+   <div class="auth-field" id="nameField" hidden><label>الاسم الكامل</label><input id="fullName" autocomplete="name" placeholder="الاسم الكامل كما في السجل الجامعي"></div>
    <div class="auth-field" id="numberField" hidden><label>الرقم الجامعي</label><input id="studentNumber" autocomplete="off" placeholder="الرقم الجامعي"></div>
    <div class="auth-field" id="emailField"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="username" required placeholder="name@university.edu"></div>
    <div class="auth-field"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password" required minlength="8" placeholder="8 أحرف على الأقل"></div>
@@ -169,8 +169,8 @@ renderStudents();renderAttendance();
   $id('signupTab').classList.toggle('active',signup);
   $id('nameField').hidden=!signup;
   $id('numberField').hidden=!signup;
-  $id('authHeading').textContent=signup?'إنشاء حساب طالب':'تسجيل الدخول';
-  $id('authDescription').textContent=signup?'أدخل اسمك ورقمك الجامعي وبريدك الإلكتروني لإنشاء حسابك.':'أدخل Gmail وكلمة المرور، وسيحدد النظام بوابتك تلقائياً حسب صلاحية حسابك.';
+  $id('authHeading').textContent=signup?'إنشاء حساب':'تسجيل الدخول';
+  $id('authDescription').textContent=signup?'أدخل اسمك ورقمك الجامعي وبريدك الإلكتروني لإنشاء حسابك. تُحدد صلاحية الحساب تلقائياً من السجل المعتمد.':'أدخل Gmail وكلمة المرور، وسيحدد النظام بوابتك تلقائياً حسب صلاحية حسابك.';
   $id('authSubmit').textContent=signup?'إنشاء الحساب':'دخول إلى النظام';
   $id('authPassword').autocomplete=signup?'new-password':'current-password';
   $id('authError').textContent='';
@@ -194,8 +194,8 @@ renderStudents();renderAttendance();
    $id('studentHome').style.display='block';
    $id('studentWelcome').textContent='أهلاً '+(user?.user_metadata?.full_name || 'بك');
    const {data:profile}=await client.from('student_profiles').select('full_name,student_number,department,academic_year').eq('user_id',user.id).maybeSingle();
-   let {data:request}=await client.from('student_registration_requests').select('status,student_number,account_type').eq('user_id',user.id).maybeSingle();
-   if(!profile&&!request&&user?.user_metadata?.student_number&&user?.user_metadata?.full_name){const {error:pendingError}=await client.from('student_registration_requests').insert({user_id:user.id,student_number:user.user_metadata.student_number,full_name:user.user_metadata.full_name,account_type:'student'});if(!pendingError){const result=await client.from('student_registration_requests').select('status,student_number,account_type').eq('user_id',user.id).maybeSingle();request=result.data;}}
+   let {data:request}=await client.from('student_registration_requests').select('status,student_number').eq('user_id',user.id).maybeSingle();
+   if(!profile&&!request&&user?.user_metadata?.student_number&&user?.user_metadata?.full_name){const {error:pendingError}=await client.from('student_registration_requests').insert({user_id:user.id,student_number:user.user_metadata.student_number,full_name:user.user_metadata.full_name});if(!pendingError){const result=await client.from('student_registration_requests').select('status,student_number').eq('user_id',user.id).maybeSingle();request=result.data;}}
    if(profile) $id('studentStatus').textContent='حسابك مفعّل · الرقم الجامعي: '+profile.student_number;
    else if(request?.status==='pending') $id('studentStatus').textContent='طلب التسجيل قيد مراجعة الإدارة'+' · الرقم الجامعي: '+request.student_number;
    else if(request?.status==='rejected') $id('studentStatus').textContent='تم رفض طلب التسجيل. يرجى مراجعة شؤون الطلبة.';
@@ -214,7 +214,6 @@ renderStudents();renderAttendance();
    if(authMode==='signup'){
     const full_name=$id('fullName').value.trim(),student_number=$id('studentNumber').value.trim();
     if(!full_name||!student_number) throw new Error('أدخل الاسم الكامل والرقم الجامعي.');
-    const account_type=$id('accountType').value;
     const {data,error}=await client.auth.signUp({email,password,options:{data:{full_name,student_number}}});
     if(error) throw error;
     if(!data.user) throw new Error('تعذر إنشاء الحساب.');
