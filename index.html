@@ -13,7 +13,7 @@
 .auth-screen{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:20px;background:radial-gradient(ellipse at 20% 0%,#1b3764 0,transparent 40%),#070d19}
 .auth-card{width:min(460px,100%);padding:28px;border:1px solid #2b4262;border-radius:24px;background:linear-gradient(145deg,#142139,#0d1729);box-shadow:0 30px 100px #0009}
 .auth-brand{display:flex;align-items:center;gap:12px;margin-bottom:22px}.auth-brand .logo{width:48px;height:48px}.auth-card h1{font-size:24px;margin:0 0 7px}.auth-card>p{color:#9fb0c8;font-size:13px;line-height:1.8;margin:0 0 18px}
-.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0}.auth-tabs button{padding:11px;border-radius:11px;background:#0d192b;color:#aabbd2;border:1px solid #2a3d59}.auth-tabs button.active{background:#1b3e6c;color:white;border-color:#4b8dff}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:18px 0}.auth-tabs button{padding:11px;border-radius:11px;background:#0d192b;color:#aabbd2;border:1px solid #2a3d59}.auth-tabs button.active{background:#1b3e6c;color:white;border-color:#4b8dff}
 .auth-field{display:grid;gap:7px;margin:12px 0}.auth-field label{font-size:12px;color:#c5d4e8}.auth-field input{padding:13px;border:1px solid #2b3d58;border-radius:11px;background:#0a1425;color:white;outline:none}.auth-field input:focus{border-color:#4b8dff}
 .auth-submit{width:100%;padding:13px;border-radius:12px;background:linear-gradient(135deg,#4d91ff,#2868dc);color:white;font-weight:700;margin-top:12px}.auth-error{color:#ff9aa5;font-size:12px;line-height:1.7;min-height:18px;margin-top:10px}.auth-note{font-size:11px;color:#8296b5;line-height:1.8;margin-top:16px}
 .student-home{display:none}.student-home .panel{max-width:760px}.logout-btn{background:#1a2a42;color:#dbe8fa;border:1px solid #304766;border-radius:10px;padding:9px 12px}
@@ -26,11 +26,13 @@
  <div class="auth-card">
   <div class="auth-brand"><div class="logo">⌗</div><div><strong>CampusQR</strong><small>نظام الحضور الذكي</small></div></div>
   <h1 id="authHeading">تسجيل الدخول</h1><p id="authDescription">سجّل الدخول بحسابك الجامعي للوصول إلى خدمات الحضور.</p>
-  <div class="auth-tabs"><button class="active" id="loginTab" type="button">دخول طالب</button><button id="signupTab" type="button">تسجيل طالب</button><button id="adminTab" type="button">دخول الإدارة</button></div>
+  <div class="auth-tabs"><button class="active" id="loginTab" type="button">دخول</button><button id="signupTab" type="button">تسجيل جديد</button><button id="superAdminTab" type="button">دخول المدير</button></div>
   <form id="authForm">
    <div class="auth-field" id="nameField" hidden><label>الاسم الكامل</label><input id="fullName" autocomplete="name" placeholder="اسم الطالب كما في السجل الجامعي"></div>
    <div class="auth-field" id="numberField" hidden><label>الرقم الجامعي</label><input id="studentNumber" autocomplete="off" placeholder="الرقم الجامعي"></div>
-   <div class="auth-field" id="emailField"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="username" placeholder="name@university.edu"></div><div class="auth-field" id="adminUserField" hidden><label>اسم المستخدم الإداري</label><input id="adminUsername" autocomplete="username" placeholder="اسم المستخدم"></div>
+   <div class="auth-field" id="accountTypeField" hidden><label>نوع الحساب</label><select id="accountType"><option value="student">طالب</option><option value="admin">طلب حساب إداري</option></select></div>
+   <div class="auth-field" id="emailField"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="username" required placeholder="name@university.edu"></div>
+   <div class="auth-field" id="usernameField" hidden><label>اسم المدير الأساسي</label><input id="authUsername" autocomplete="username" placeholder="اسم المستخدم"></div>
    <div class="auth-field"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password" required minlength="8" placeholder="8 أحرف على الأقل"></div>
    <button class="auth-submit" id="authSubmit" type="submit">دخول إلى النظام</button>
    <div class="auth-error" id="authError" role="alert"></div>
@@ -161,19 +163,26 @@ renderStudents();renderAttendance();
  const SUPABASE_KEY = "sb_publishable_zdu46PvVYIF6A3YL9wCLGw_d0TMt58J";
  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
  const $id = id => document.getElementById(id);
- let signupMode = false, adminMode = false;
- const setMode = (value, admin=false) => {
-  signupMode = value; adminMode = admin;
-  $id('loginTab').classList.toggle('active',!value&&!admin); $id('signupTab').classList.toggle('active',value); $id('adminTab').classList.toggle('active',admin);
-  $id('emailField').hidden=admin; $id('adminUserField').hidden=!admin; $id('authEmail').required=!admin;
-  $id('nameField').hidden = !value; $id('numberField').hidden = !value;
-  $id('authHeading').textContent = value ? 'إنشاء حساب طالب' : admin ? 'دخول الإدارة' : 'دخول الطالب';
-  $id('authDescription').textContent = value ? 'أدخل بياناتك الجامعية لإرسال طلب إنشاء الحساب.' : admin ? 'أدخل اسم المستخدم وكلمة المرور للوصول إلى لوحة الإدارة.' : 'سجّل الدخول بالبريد الإلكتروني وكلمة المرور للوصول إلى خدمات الحضور.';
-  $id('authSubmit').textContent = value ? 'إرسال طلب التسجيل' : admin ? 'دخول الإدارة' : 'دخول الطالب';
-  $id('authPassword').autocomplete = value ? 'new-password' : 'current-password';
-  $id('authError').textContent = '';
+ let authMode = 'login';
+ const setMode = value => {
+  authMode = value;
+  const signup=value==='signup', superAdmin=value==='super';
+  $id('loginTab').classList.toggle('active',value==='login');
+  $id('signupTab').classList.toggle('active',signup);
+  $id('superAdminTab').classList.toggle('active',superAdmin);
+  $id('nameField').hidden=!signup; $id('numberField').hidden=!signup;
+  $id('accountTypeField').hidden=!signup;
+  $id('emailField').hidden=superAdmin; $id('authEmail').required=!superAdmin;
+  $id('usernameField').hidden=!superAdmin; $id('authUsername').required=superAdmin;
+  $id('authHeading').textContent=signup?'إنشاء حساب':superAdmin?'دخول المدير الأساسي':'تسجيل الدخول';
+  $id('authDescription').textContent=signup?'أدخل بياناتك الجامعية والبريد الإلكتروني لإرسال طلب التسجيل.':superAdmin?'الدخول المخصص للمدير الأساسي باستخدام اسم المستخدم وكلمة المرور.':'سجّل الدخول بالبريد الإلكتروني وكلمة المرور.';
+  $id('authSubmit').textContent=signup?'إرسال طلب التسجيل':'دخول إلى النظام';
+  $id('authPassword').autocomplete=signup?'new-password':'current-password';
+  $id('authError').textContent='';
  };
- $id('loginTab').onclick=()=>setMode(false,false); $id('signupTab').onclick=()=>setMode(true,false); $id('adminTab').onclick=()=>setMode(false,true);
+ $id('loginTab').onclick=()=>setMode('login');
+ $id('signupTab').onclick=()=>setMode('signup');
+ $id('superAdminTab').onclick=()=>setMode('super');
  const message = (text, bad=true) => { $id('authError').style.color=bad?'#ff9aa5':'#6de0b7'; $id('authError').textContent=text; };
  async function enterApp(session) {
   const {data:roleData,error:roleError}=await client.rpc('get_my_app_role');
@@ -191,10 +200,10 @@ renderStudents();renderAttendance();
    $id('studentHome').style.display='block';
    $id('studentWelcome').textContent='أهلاً '+(user?.user_metadata?.full_name || 'بك');
    const {data:profile}=await client.from('student_profiles').select('full_name,student_number,department,academic_year').eq('user_id',user.id).maybeSingle();
-   let {data:request}=await client.from('student_registration_requests').select('status,student_number').eq('user_id',user.id).maybeSingle();
-   if(!profile&&!request&&user?.user_metadata?.student_number&&user?.user_metadata?.full_name){const {error:pendingError}=await client.from('student_registration_requests').insert({user_id:user.id,student_number:user.user_metadata.student_number,full_name:user.user_metadata.full_name});if(!pendingError){const result=await client.from('student_registration_requests').select('status,student_number').eq('user_id',user.id).maybeSingle();request=result.data;}}
+   let {data:request}=await client.from('student_registration_requests').select('status,student_number,account_type').eq('user_id',user.id).maybeSingle();
+   if(!profile&&!request&&user?.user_metadata?.student_number&&user?.user_metadata?.full_name){const {error:pendingError}=await client.from('student_registration_requests').insert({user_id:user.id,student_number:user.user_metadata.student_number,full_name:user.user_metadata.full_name,account_type:user.user_metadata.account_type==='admin'?'admin':'student'});if(!pendingError){const result=await client.from('student_registration_requests').select('status,student_number,account_type').eq('user_id',user.id).maybeSingle();request=result.data;}}
    if(profile) $id('studentStatus').textContent='حسابك مفعّل · الرقم الجامعي: '+profile.student_number;
-   else if(request?.status==='pending') $id('studentStatus').textContent='طلب التسجيل قيد مراجعة الإدارة · الرقم الجامعي: '+request.student_number;
+   else if(request?.status==='pending') $id('studentStatus').textContent=(request.account_type==='admin'?'طلب الحساب الإداري قيد مراجعة المدير الأساسي':'طلب التسجيل قيد مراجعة الإدارة')+' · الرقم الجامعي: '+request.student_number;
    else if(request?.status==='rejected') $id('studentStatus').textContent='تم رفض طلب التسجيل. يرجى مراجعة شؤون الطلبة.';
    else $id('studentStatus').textContent='لم يتم اعتماد ملفك الجامعي بعد. أرسل طلب التسجيل من خيار إنشاء حساب.';
   } else {
@@ -208,25 +217,34 @@ renderStudents();renderAttendance();
   e.preventDefault(); const btn=$id('authSubmit'); btn.disabled=true; btn.textContent='جارٍ المعالجة...'; message('');
   try {
    const email=$id('authEmail').value.trim(),password=$id('authPassword').value;
-   if(adminMode){const {data,error}=await client.functions.invoke('admin-username-login',{body:{username:$id('adminUsername').value.trim(),password}});if(error)throw error; if(!data?.session)throw new Error(data?.error||'تعذر تسجيل الدخول الإداري.'); const {error:setError}=await client.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});if(setError)throw setError;await enterApp(data.session);
-   } else if(signupMode){
+   if(authMode==='signup'){
     const full_name=$id('fullName').value.trim(),student_number=$id('studentNumber').value.trim();
     if(!full_name||!student_number) throw new Error('أدخل الاسم الكامل والرقم الجامعي.');
-    const {data,error}=await client.auth.signUp({email,password,options:{data:{full_name,student_number}}});
+    const account_type=$id('accountType').value;
+    const {data,error}=await client.auth.signUp({email,password,options:{data:{full_name,student_number,account_type}}});
     if(error) throw error;
     if(!data.user) throw new Error('تعذر إنشاء الحساب.');
     if(!data.session){message('تم إنشاء الحساب. افحص بريدك لتأكيده، ثم سجّل الدخول لإرسال طلب اعتماد الرقم الجامعي.',false);setMode(false);return;}
-    const {error:requestError}=await client.from('student_registration_requests').insert({user_id:data.user.id,student_number,full_name});
+    const {error:requestError}=await client.from('student_registration_requests').insert({user_id:data.user.id,student_number,full_name,account_type});
     if(requestError) throw requestError;
-    message('تم إنشاء الحساب وإرسال طلب اعتمادك للإدارة.',false);
+    message(account_type==='admin'?'تم إرسال طلب الحساب الإداري، ولن تُفعّل الصلاحيات إلا بعد اعتماد المدير الأساسي.':'تم إنشاء الحساب وإرسال طلب اعتمادك للإدارة.',false);
     await enterApp(data.session);
+   } else if(authMode==='super'){
+    const username=$id('authUsername').value.trim();
+    const {data,error}=await client.functions.invoke('admin-username-login',{body:{username,password}});
+    if(error) throw error;
+    if(data?.error) throw new Error(data.error);
+    if(!data?.session?.access_token||!data?.session?.refresh_token) throw new Error('تعذر التحقق من جلسة المدير.');
+    const {data:sessionData,error:sessionError}=await client.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});
+    if(sessionError) throw sessionError;
+    await enterApp(sessionData.session);
    } else {
     const {data,error}=await client.auth.signInWithPassword({email,password});
     if(error) throw error;
     await enterApp(data.session);
    }
   } catch(err){message(err.message||'تعذر إكمال العملية.');}
-  finally{btn.disabled=false;btn.textContent=signupMode?'إرسال طلب التسجيل':adminMode?'دخول الإدارة':'دخول الطالب';}
+  finally{btn.disabled=false;btn.textContent=authMode==='signup'?'إرسال طلب التسجيل':'دخول إلى النظام';}
  });
  $id('logoutBtn').onclick=async()=>{await client.auth.signOut();location.reload();};
  client.auth.getSession().then(async({data,error})=>{if(error)return; if(data.session){try{await enterApp(data.session)}catch(e){$id('authScreen').style.display='grid';message(e.message||'تعذر تحميل الصلاحيات.')}}});
