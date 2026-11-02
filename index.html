@@ -108,7 +108,7 @@ async async function checkBootstrap(){
   const state=await invoke("bootstrap_status");
   const available=state.setup_available===true;
   $("tabSetup").classList.toggle("hidden",!available);
-  if(!available && $("setupForm").classList.contains("active")) showTab("login");
+  if(!available && $("tabSetup").classList.contains("active")) showTab("login");
   if(!available) $("tabSetup").setAttribute("aria-hidden","true");
   else $("tabSetup").removeAttribute("aria-hidden");
   return available;
