@@ -164,22 +164,24 @@ renderStudents();renderAttendance();
 (() => {
  const SUPABASE_URL = "https://brrzgwgwcdnpabqdrjvr.supabase.co";
  const SUPABASE_KEY = "sb_publishable_zdu46PvVYIF6A3YL9wCLGw_d0TMt58J";
+ const invitationLink=new URLSearchParams(location.hash.replace(/^#/,'')).get('type')==='invite';
  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
  const $id = id => document.getElementById(id);
  let authMode = 'login';
  const setMode = value => {
   authMode = value;
-  const signup=value==='signup';
-  $id('loginTab').classList.toggle('active',!signup);
+  const signup=value==='signup',settingPassword=value==='set-password';
+  $id('loginTab').classList.toggle('active',!signup&&!settingPassword);
   $id('signupTab').classList.toggle('active',signup);
+  document.querySelector('.auth-tabs').style.display=settingPassword?'none':'grid';
   $id('nameField').hidden=!signup;
   $id('numberField').hidden=!signup;
-  $id('authHeading').textContent=signup?'إنشاء حساب':'تسجيل الدخول';
-  $id('authDescription').textContent=signup?'أرسل بياناتك إلى الإدارة للمراجعة. لن يتم إنشاء حساب أو كلمة مرور قبل الموافقة.':'أدخل Gmail وكلمة المرور، وسيحدد النظام بوابتك تلقائياً حسب صلاحية حسابك.';
-  $id('authSubmit').textContent=signup?'إرسال طلب التسجيل':'دخول إلى النظام';
+  $id('authHeading').textContent=settingPassword?'تعيين كلمة المرور':signup?'إنشاء حساب':'تسجيل الدخول';
+  $id('authDescription').textContent=settingPassword?'أنشئ كلمة مرور لحسابك المعتمد حتى تتمكن من تسجيل الدخول لاحقاً.':signup?'أرسل بياناتك إلى الإدارة للمراجعة. لن يتم إنشاء حساب أو كلمة مرور قبل الموافقة.':'أدخل Gmail وكلمة المرور، وسيحدد النظام بوابتك تلقائياً حسب صلاحية حسابك.';
+  $id('authSubmit').textContent=settingPassword?'حفظ كلمة المرور':signup?'إرسال طلب التسجيل':'دخول إلى النظام';
   $id('passwordField').hidden=signup;
   $id('authPassword').required=!signup;
-  $id('authPassword').autocomplete=signup?'off':'current-password';
+  $id('authPassword').autocomplete=signup?'off':settingPassword?'new-password':'current-password';
   $id('authError').textContent='';
  };
  $id('loginTab').onclick=()=>setMode('login');
@@ -222,6 +224,12 @@ renderStudents();renderAttendance();
   e.preventDefault(); const btn=$id('authSubmit'); btn.disabled=true; btn.textContent='جارٍ المعالجة...'; message('');
   try {
    const email=$id('authEmail').value.trim(),password=$id('authPassword').value;
+   if(authMode==='set-password'){
+    if(password.length<8)throw new Error('كلمة المرور يجب أن تكون 8 أحرف على الأقل.');
+    const {error}=await client.auth.updateUser({password});if(error)throw error;
+    message('تم حفظ كلمة المرور وتفعيل حسابك.',false);
+    const {data:sessionData}=await client.auth.getSession();await enterApp(sessionData.session);return;
+   }
    if(authMode==='signup'){
     const full_name=$id('fullName').value.trim(),student_number=$id('studentNumber').value.trim();
     if(!full_name||!student_number) throw new Error('أدخل الاسم الكامل والرقم الجامعي.');
@@ -237,12 +245,12 @@ renderStudents();renderAttendance();
     await enterApp(data.session);
    }
   } catch(err){message(err.message||'تعذر إكمال العملية.');}
-  finally{btn.disabled=false;btn.textContent=authMode==='signup'?'إرسال طلب التسجيل':'دخول إلى النظام';}
+  finally{btn.disabled=false;btn.textContent=authMode==='set-password'?'حفظ كلمة المرور':authMode==='signup'?'إرسال طلب التسجيل':'دخول إلى النظام';}
  });
  $id('refreshRequests').onclick=loadRequests;
  $id('requestRows').addEventListener('click',async e=>{const a=e.target.closest('[data-approve]'),r=e.target.closest('[data-reject]');if(!a&&!r)return;const request_id=(a||r).dataset.approve||(a||r).dataset.reject;try{if(a){await adminAction({action:'approve_request',request_id});alert('تمت الموافقة وإنشاء الحساب وإرسال رابط التفعيل.');}else{await adminAction({action:'reject_request',request_id});alert('تم رفض الطلب.');}loadRequests();}catch(err){alert(err.message||'تعذر تنفيذ العملية');}});
  $id('logoutBtn').onclick=async()=>{await client.auth.signOut();location.reload();};
- client.auth.getSession().then(async({data,error})=>{if(error)return; if(data.session){try{await enterApp(data.session)}catch(e){$id('authScreen').style.display='grid';message(e.message||'تعذر تحميل الصلاحيات.')}}});
+ client.auth.getSession().then(async({data,error})=>{if(error)return;if(data.session){try{if(invitationLink){setMode('set-password');$id('authScreen').style.display='grid';message('تم التحقق من الدعوة. عيّن كلمة مرور لحسابك.',false);}else await enterApp(data.session)}catch(e){$id('authScreen').style.display='grid';message(e.message||'تعذر تحميل الصلاحيات.')}}});
  client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT')location.reload();});
 })();
 </script>
