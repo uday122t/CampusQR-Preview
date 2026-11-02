@@ -190,7 +190,8 @@ renderStudents();renderAttendance();
    $id('studentHome').style.display='block';
    $id('studentWelcome').textContent='أهلاً '+(user?.user_metadata?.full_name || 'بك');
    const {data:profile}=await client.from('student_profiles').select('full_name,student_number,department,academic_year').eq('user_id',user.id).maybeSingle();
-   const {data:request}=await client.from('student_registration_requests').select('status,student_number').eq('user_id',user.id).maybeSingle();
+   let {data:request}=await client.from('student_registration_requests').select('status,student_number').eq('user_id',user.id).maybeSingle();
+   if(!profile&&!request&&user?.user_metadata?.student_number&&user?.user_metadata?.full_name){const {error:pendingError}=await client.from('student_registration_requests').insert({user_id:user.id,student_number:user.user_metadata.student_number,full_name:user.user_metadata.full_name});if(!pendingError){const result=await client.from('student_registration_requests').select('status,student_number').eq('user_id',user.id).maybeSingle();request=result.data;}}
    if(profile) $id('studentStatus').textContent='حسابك مفعّل · الرقم الجامعي: '+profile.student_number;
    else if(request?.status==='pending') $id('studentStatus').textContent='طلب التسجيل قيد مراجعة الإدارة · الرقم الجامعي: '+request.student_number;
    else if(request?.status==='rejected') $id('studentStatus').textContent='تم رفض طلب التسجيل. يرجى مراجعة شؤون الطلبة.';
@@ -209,7 +210,7 @@ renderStudents();renderAttendance();
    if(signupMode){
     const full_name=$id('fullName').value.trim(),student_number=$id('studentNumber').value.trim();
     if(!full_name||!student_number) throw new Error('أدخل الاسم الكامل والرقم الجامعي.');
-    const {data,error}=await client.auth.signUp({email,password,options:{data:{full_name}}});
+    const {data,error}=await client.auth.signUp({email,password,options:{data:{full_name,student_number}}});
     if(error) throw error;
     if(!data.user) throw new Error('تعذر إنشاء الحساب.');
     if(!data.session){message('تم إنشاء الحساب. افحص بريدك لتأكيده، ثم سجّل الدخول لإرسال طلب اعتماد الرقم الجامعي.',false);setMode(false);return;}
