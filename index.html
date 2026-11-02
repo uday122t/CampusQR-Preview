@@ -31,7 +31,7 @@
    <div class="auth-field" id="nameField" hidden><label>الاسم الكامل</label><input id="fullName" autocomplete="name" placeholder="الاسم الكامل كما في السجل الجامعي"></div>
    <div class="auth-field" id="numberField" hidden><label>الرقم الجامعي</label><input id="studentNumber" autocomplete="off" placeholder="الرقم الجامعي"></div>
    <div class="auth-field" id="emailField"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="username" required placeholder="name@university.edu"></div>
-   <div class="auth-field"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password" required minlength="8" placeholder="8 أحرف على الأقل"></div>
+   <div class="auth-field" id="passwordField"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password" minlength="8" placeholder="تُعيّن بعد موافقة الإدارة عبر البريد"></div>
    <button class="auth-submit" id="authSubmit" type="submit">دخول إلى النظام</button>
    <div class="auth-error" id="authError" role="alert"></div>
   </form>
@@ -51,6 +51,7 @@
  <nav class="nav">
   <button class="active" data-view="overview"><span class="ico">▦</span>الرئيسية</button>
   <button data-view="students"><span class="ico">♙</span>الطلاب</button>
+  <button data-view="requests"><span class="ico">✉</span>طلبات التسجيل</button>
   <button data-view="sessions"><span class="ico">▣</span>المحاضرات</button>
   <button data-view="attendance"><span class="ico">✓</span>سجل الحضور</button>
   <button data-view="reports"><span class="ico">▥</span>التقارير</button>
@@ -92,6 +93,10 @@
   <div class="page-head"><div><div class="eyebrow">إدارة البيانات الأكاديمية</div><h1>الطلاب</h1><p>إدارة ملفات الطلاب وحالة أجهزتهم المرتبطة.</p></div><button class="btn" id="addStudent">＋ إضافة طالب</button></div>
   <div class="notice">بيانات هذه الصفحة افتراضية للمعاينة. ربط الجهاز في النسخة النهائية سيكون عبر اعتماد من الخادم مع إمكانية طلب إعادة الربط من الإدارة.</div>
   <div class="panel"><div class="toolbar"><input class="search" id="studentSearch" placeholder="ابحث بالاسم أو الرقم الجامعي..."><select class="select" id="collegeFilter"><option value="">كل الكليات</option><option>تكنولوجيا المعلومات</option><option>الهندسة</option><option>العلوم</option></select></div><div class="table-wrap"><table><thead><tr><th>الطالب</th><th>الرقم الجامعي</th><th>الكلية</th><th>التخصص</th><th>الجهاز</th><th>الحالة</th></tr></thead><tbody id="studentRows"></tbody></table></div></div>
+ </section>
+ <section class="view" id="requests">
+  <div class="page-head"><div><div class="eyebrow">مراجعة واعتماد الحسابات</div><h1>طلبات التسجيل</h1><p>لا يُنشأ حساب الطالب إلا بعد موافقة الإدارة.</p></div><button class="btn secondary" id="refreshRequests">↻ تحديث الطلبات</button></div>
+  <div class="panel"><div class="panel-head"><h3>الطلبات المعلقة</h3><span id="requestCount">0 طلب</span></div><div class="table-wrap"><table><thead><tr><th>اسم الطالب</th><th>الرقم الجامعي</th><th>Gmail</th><th>تاريخ الطلب</th><th>الإجراء</th></tr></thead><tbody id="requestRows"><tr><td colspan="5" class="empty-note">جارٍ تحميل الطلبات...</td></tr></tbody></table></div></div>
  </section>
  <section class="view" id="sessions">
   <div class="page-head"><div><div class="eyebrow">الجداول الدراسية</div><h1>المحاضرات</h1><p>إنشاء جلسات الحضور ومتابعة الرموز النشطة.</p></div><button class="btn" id="newSession2">＋ إنشاء محاضرة</button></div>
@@ -145,9 +150,9 @@ function qr(){const el=$('#qrArt');el.innerHTML='';for(let i=0;i<169;i++){const 
 qr();let sec=30;setInterval(()=>{sec--;if(sec<=0){sec=30;qr()}$('#countdown').textContent='00:'+String(sec).padStart(2,'0')},1000);
 $('#refreshQr').onclick=()=>{sec=30;qr();$('#countdown').textContent='00:30'};
 let mode='session';
-function openModal(type){mode=type;$('#modalTitle').textContent=type==='session'?'إنشاء محاضرة':'إضافة طالب';$('#modalFields').innerHTML=type==='session'?'<div class="field"><label>اسم المساق</label><input id="f1" placeholder="مثال: قواعد البيانات"></div><div class="field"><label>اسم المدرس</label><input id="f2" placeholder="اسم المدرس"></div><div class="field"><label>القاعة والوقت</label><input id="f3" placeholder="قاعة 205 · 12:00"></div>':'<div class="field"><label>اسم الطالب</label><input id="f1" placeholder="الاسم الكامل"></div><div class="field"><label>الرقم الجامعي</label><input id="f2" placeholder="2023xxxx"></div><div class="field"><label>الكلية</label><select id="f3"><option>تكنولوجيا المعلومات</option><option>الهندسة</option><option>العلوم</option></select></div>';$('#modal').classList.add('show')}
+function openModal(type){mode=type;$('#modalTitle').textContent=type==='session'?'إنشاء محاضرة':'إضافة طالب جديد';$('#modalFields').innerHTML=type==='session'?'<div class="field"><label>اسم المساق</label><input id="f1" placeholder="مثال: قواعد البيانات"></div><div class="field"><label>اسم المدرس</label><input id="f2" placeholder="اسم المدرس"></div><div class="field"><label>القاعة والوقت</label><input id="f3" placeholder="قاعة 205 · 12:00"></div>':'<div class="field"><label>اسم الطالب</label><input id="f1" placeholder="الاسم الكامل"></div><div class="field"><label>الرقم الجامعي</label><input id="f2" placeholder="2023xxxx"></div><div class="field"><label>Gmail الطالب</label><input id="f3" type="email" placeholder="student@gmail.com"></div><div class="field"><label>القسم / التخصص</label><input id="f4" placeholder="هندسة الحاسوب"></div><div class="field"><label>السنة الدراسية</label><input id="f5" placeholder="السنة الأولى"></div>';$('#modal').classList.add('show')}
 $('#newSession').onclick=$('#newSession2').onclick=()=>openModal('session');$('#addStudent').onclick=()=>openModal('student');$('#closeModal').onclick=()=>$('#modal').classList.remove('show');
-$('#saveModal').onclick=()=>{const a=$('#f1').value.trim(),b=$('#f2').value.trim(),c=$('#f3').value.trim();if(!a||!b||!c){alert('يرجى تعبئة جميع الحقول');return}if(mode==='student'){students.unshift({name:a,id:b,college:c,major:'غير محدد',device:'غير مرتبط',state:'مراجعة'});$('#totalStudents').textContent=(1248+students.length-6).toLocaleString('en-US');renderStudents()}else{const item=document.createElement('div');item.className='session';item.innerHTML='<div class="course-icon">📘</div><div class="session-info"><b></b><p></p></div><span class="status pending">مجدولة</span>';item.querySelector('b').textContent=a;item.querySelector('p').textContent=b+' · '+c;$('#allSessions').prepend(item);$('#sessionList').prepend(item.cloneNode(true))}$('#modal').classList.remove('show')};
+$('#saveModal').onclick=async()=>{const a=$('#f1').value.trim(),b=$('#f2').value.trim(),c=$('#f3').value.trim();if(!a||!b||!c){alert('يرجى تعبئة جميع الحقول');return}const save=$('#saveModal');save.disabled=true;try{if(mode==='student'){if(!window.CampusQRAdminAction)throw new Error('خدمة الإدارة غير متاحة');await window.CampusQRAdminAction({action:'add_student',full_name:a,student_number:b,email:c,department:$('#f4').value.trim(),academic_year:$('#f5').value.trim()});alert('تم إنشاء حساب الطالب وإرسال رابط التفعيل إلى Gmail.');if(window.CampusQRRefreshStudents)window.CampusQRRefreshStudents();}else{const item=document.createElement('div');item.className='session';item.innerHTML='<div class="course-icon">📘</div><div class="session-info"><b></b><p></p></div><span class="status pending">مجدولة</span>';item.querySelector('b').textContent=a;item.querySelector('p').textContent=b+' · '+c;$('#allSessions').prepend(item);$('#sessionList').prepend(item.cloneNode(true))}$('#modal').classList.remove('show')}catch(err){alert(err.message||'تعذر حفظ البيانات')}finally{save.disabled=false}};
 function exportData(){const rows=[['الطالب','الرقم الجامعي','المساق','التاريخ','الوقت','الحالة'],...attendance];const csv='\ufeff'+rows.map(r=>r.map(x=>'"'+String(x).replaceAll('"','""')+'"').join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='CampusQR-attendance.csv';a.click();URL.revokeObjectURL(url)}
 $('#exportCsv').onclick=$('#reportExport').onclick=exportData;
 $('#langBtn').onclick=()=>alert('سيتم تفعيل الواجهة الإنجليزية ضمن مرحلة تعدد اللغات. المعاينة الحالية باللغة العربية.');
@@ -170,14 +175,22 @@ renderStudents();renderAttendance();
   $id('nameField').hidden=!signup;
   $id('numberField').hidden=!signup;
   $id('authHeading').textContent=signup?'إنشاء حساب':'تسجيل الدخول';
-  $id('authDescription').textContent=signup?'أدخل اسمك ورقمك الجامعي وبريدك الإلكتروني لإنشاء حسابك. تُحدد صلاحية الحساب تلقائياً من السجل المعتمد.':'أدخل Gmail وكلمة المرور، وسيحدد النظام بوابتك تلقائياً حسب صلاحية حسابك.';
-  $id('authSubmit').textContent=signup?'إنشاء الحساب':'دخول إلى النظام';
-  $id('authPassword').autocomplete=signup?'new-password':'current-password';
+  $id('authDescription').textContent=signup?'أرسل بياناتك إلى الإدارة للمراجعة. لن يتم إنشاء حساب أو كلمة مرور قبل الموافقة.':'أدخل Gmail وكلمة المرور، وسيحدد النظام بوابتك تلقائياً حسب صلاحية حسابك.';
+  $id('authSubmit').textContent=signup?'إرسال طلب التسجيل':'دخول إلى النظام';
+  $id('passwordField').hidden=signup;
+  $id('authPassword').required=!signup;
+  $id('authPassword').autocomplete=signup?'off':'current-password';
   $id('authError').textContent='';
  };
  $id('loginTab').onclick=()=>setMode('login');
  $id('signupTab').onclick=()=>setMode('signup');
  const message = (text, bad=true) => { $id('authError').style.color=bad?'#ff9aa5':'#6de0b7'; $id('authError').textContent=text; };
+ async function adminAction(payload){const {data,error}=await client.functions.invoke('registration-admin',{body:payload});if(error)throw error;if(data?.error)throw new Error(data.error);return data;}
+ window.CampusQRAdminAction=adminAction;
+ async function loadStudents(){try{const data=await adminAction({action:'list_students'});const rows=data.students||[];$id('studentRows').innerHTML=rows.map(s=>'<tr><td><div class="student"><span class="avatar">'+escapeHtml((s.full_name||'ط').slice(0,1))+'</span>'+escapeHtml(s.full_name)+'</div></td><td>'+escapeHtml(s.student_number)+'</td><td>'+escapeHtml(s.department||'—')+'</td><td>'+escapeHtml(s.academic_year||'—')+'</td><td>غير مرتبط</td><td><span class="pill">معتمد</span></td></tr>').join('')||'<tr><td colspan="6" class="empty-note">لا يوجد طلاب معتمدون بعد</td></tr>';}catch(e){console.warn('student list',e);}}
+ window.CampusQRRefreshStudents=loadStudents;
+ function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+ async function loadRequests(){const body=$id('requestRows');if(!body)return;body.innerHTML='<tr><td colspan="5" class="empty-note">جارٍ تحميل الطلبات...</td></tr>';try{const data=await adminAction({action:'list_requests'});const rows=data.requests||[];$id('requestCount').textContent=rows.length+' طلب';body.innerHTML=rows.map(r=>'<tr><td>'+escapeHtml(r.full_name)+'</td><td>'+escapeHtml(r.student_number)+'</td><td>'+escapeHtml(r.email)+'</td><td>'+new Date(r.created_at).toLocaleDateString('ar')+'</td><td><button class="btn" data-approve="'+r.request_id+'">موافقة</button> <button class="btn ghost" data-reject="'+r.request_id+'">رفض</button></td></tr>').join('')||'<tr><td colspan="5" class="empty-note">لا توجد طلبات معلقة</td></tr>';}catch(e){body.innerHTML='<tr><td colspan="5" class="empty-note">تعذر تحميل الطلبات: '+escapeHtml(e.message)+'</td></tr>';}}
  async function enterApp(session) {
   const {data:roleData,error:roleError}=await client.rpc('get_my_app_role');
   if(roleError) throw roleError;
@@ -194,17 +207,15 @@ renderStudents();renderAttendance();
    $id('studentHome').style.display='block';
    $id('studentWelcome').textContent='أهلاً '+(user?.user_metadata?.full_name || 'بك');
    const {data:profile}=await client.from('student_profiles').select('full_name,student_number,department,academic_year').eq('user_id',user.id).maybeSingle();
-   let {data:request}=await client.from('student_registration_requests').select('status,student_number').eq('user_id',user.id).maybeSingle();
-   if(!profile&&!request&&user?.user_metadata?.student_number&&user?.user_metadata?.full_name){const {error:pendingError}=await client.from('student_registration_requests').insert({user_id:user.id,student_number:user.user_metadata.student_number,full_name:user.user_metadata.full_name});if(!pendingError){const result=await client.from('student_registration_requests').select('status,student_number').eq('user_id',user.id).maybeSingle();request=result.data;}}
-   if(profile) $id('studentStatus').textContent='حسابك مفعّل · الرقم الجامعي: '+profile.student_number;
-   else if(request?.status==='pending') $id('studentStatus').textContent='طلب التسجيل قيد مراجعة الإدارة'+' · الرقم الجامعي: '+request.student_number;
-   else if(request?.status==='rejected') $id('studentStatus').textContent='تم رفض طلب التسجيل. يرجى مراجعة شؤون الطلبة.';
-   else $id('studentStatus').textContent='لم يتم اعتماد ملفك الجامعي بعد. أرسل طلب التسجيل من خيار إنشاء حساب.';
+   if(profile) $id('studentStatus').textContent='حسابك معتمد ومفعّل · الرقم الجامعي: '+profile.student_number;
+   else $id('studentStatus').textContent='لا يوجد ملف طالب معتمد لهذا الحساب. يرجى مراجعة الإدارة.';
   } else {
    document.querySelector('.main').style.display='block';
    document.querySelectorAll('.nav button').forEach(b=>b.style.display='flex');
    document.querySelectorAll('.view').forEach(v=>v.style.display='');
    document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='overview'));
+   loadRequests();
+   loadStudents();
   }
  }
  $id('authForm').addEventListener('submit',async e=>{
@@ -214,29 +225,22 @@ renderStudents();renderAttendance();
    if(authMode==='signup'){
     const full_name=$id('fullName').value.trim(),student_number=$id('studentNumber').value.trim();
     if(!full_name||!student_number) throw new Error('أدخل الاسم الكامل والرقم الجامعي.');
-    const {data,error}=await client.auth.signUp({email,password,options:{data:{full_name,student_number}}});
+    const {data,error}=await client.functions.invoke('registration-admin',{body:{action:'submit_request',full_name,student_number,email}});
     if(error) throw error;
-    if(!data.user) throw new Error('تعذر إنشاء الحساب.');
-    if(!data.session){message('تم إنشاء الحساب. افحص بريدك لتأكيده، ثم سجّل الدخول لإرسال طلب اعتماد الرقم الجامعي.',false);setMode('login');return;}
-    const {data:signupRole,error:signupRoleError}=await client.rpc('get_my_app_role');
-    if(signupRoleError) throw signupRoleError;
-    if(signupRole==='admin'||signupRole==='super_admin'){
-     message('تم التحقق من الحساب الإداري. جارٍ فتح لوحة الإدارة.',false);
-     await enterApp(data.session);
-     return;
-    }
-    const {error:requestError}=await client.from('student_registration_requests').insert({user_id:data.user.id,student_number,full_name});
-    if(requestError) throw requestError;
-    message('تم إنشاء الحساب وإرسال طلب اعتمادك للإدارة.',false);
-    await enterApp(data.session);
+    if(data?.error) throw new Error(data.error);
+    message('وصل طلبك للإدارة بنجاح. لن يتم إنشاء حسابك إلا بعد الموافقة، وسيصلك رابط التفعيل على Gmail.',false);
+    $id('authForm').reset();
+    return;
    } else {
     const {data,error}=await client.auth.signInWithPassword({email,password});
     if(error) throw error;
     await enterApp(data.session);
    }
   } catch(err){message(err.message||'تعذر إكمال العملية.');}
-  finally{btn.disabled=false;btn.textContent=authMode==='signup'?'إنشاء الحساب':'دخول إلى النظام';}
+  finally{btn.disabled=false;btn.textContent=authMode==='signup'?'إرسال طلب التسجيل':'دخول إلى النظام';}
  });
+ $id('refreshRequests').onclick=loadRequests;
+ $id('requestRows').addEventListener('click',async e=>{const a=e.target.closest('[data-approve]'),r=e.target.closest('[data-reject]');if(!a&&!r)return;const request_id=(a||r).dataset.approve||(a||r).dataset.reject;try{if(a){await adminAction({action:'approve_request',request_id});alert('تمت الموافقة وإنشاء الحساب وإرسال رابط التفعيل.');}else{await adminAction({action:'reject_request',request_id});alert('تم رفض الطلب.');}loadRequests();}catch(err){alert(err.message||'تعذر تنفيذ العملية');}});
  $id('logoutBtn').onclick=async()=>{await client.auth.signOut();location.reload();};
  client.auth.getSession().then(async({data,error})=>{if(error)return; if(data.session){try{await enterApp(data.session)}catch(e){$id('authScreen').style.display='grid';message(e.message||'تعذر تحميل الصلاحيات.')}}});
  client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT')location.reload();});
